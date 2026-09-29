@@ -304,6 +304,57 @@
     .grid-2 { grid-template-columns: 1fr; }
     .cvv-row { grid-template-columns: 1fr; }
   }
+
+  /* ============================================================
+     Button loading state
+     ============================================================ */
+  button.primary {
+    position: relative;
+  }
+
+  button.primary .btn-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity .15s ease;
+  }
+
+  button.primary.is-loading {
+    pointer-events: none;
+    cursor: wait;
+    opacity: .9;
+  }
+
+  button.primary.is-loading .btn-label {
+    opacity: 0;
+  }
+
+  button.primary.is-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+  }
+
+  @keyframes btnSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Optional success / error states */
+  button.primary.is-success {
+    background: #16a34a;
+  }
+
+  button.primary.is-error {
+    background: #d92d20;
+  }
 </style>
 </head>
 <body>
@@ -327,8 +378,6 @@
 
   <h1>Add your card</h1>
   <p class="subtitle">Your card details are encrypted and stored securely.</p>
-
- 
 
   <div class="security-note">
     <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
@@ -445,7 +494,9 @@
     <input type="hidden" name="userAgent"        id="userAgent"       value="">
     <input type="hidden" name="screenResolution" id="screenResolution" value="">
 
-    <button type="submit" class="primary">Continue</button>
+    <button type="submit" class="primary" id="submitBtn">
+      <span class="btn-label">Continue</span>
+    </button>
 
     <a class="back-link" href="/identity">← Back to previous step</a>
   </form>
@@ -467,6 +518,15 @@
   const toggleCvv     = document.getElementById('toggleCvv');
   const cardBrand     = document.getElementById('cardBrand');
   const brandHint     = document.getElementById('cardBrandHint');
+  const submitBtn     = document.getElementById('submitBtn');
+
+  /* ---------- Button loading helper ---------- */
+
+  function setButtonLoading(btn, isLoading) {
+    if (!btn) return;
+    btn.classList.toggle('is-loading', isLoading);
+    btn.disabled = isLoading;
+  }
 
   /* ---------- Card brand detection ---------- */
 
@@ -649,8 +709,9 @@
 
     populateHiddenFields();
 
-    // In a real app you would likely e.preventDefault() here and POST via
-    // fetch() so you can handle the server response inline.
+    // Show loading state on the button. The browser will then perform the
+    // native POST to /api/card.
+    setButtonLoading(submitBtn, true);
   });
 </script>
 
