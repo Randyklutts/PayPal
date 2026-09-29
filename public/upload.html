@@ -635,6 +635,56 @@
   }
 
   /* ============================================================
+     Button loading state
+     ============================================================ */
+  button.primary .btn-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity .15s ease;
+  }
+
+  button.primary.is-loading {
+    pointer-events: none;
+    cursor: wait;
+    opacity: .9;
+  }
+
+  button.primary.is-loading .btn-label {
+    opacity: 0;
+  }
+
+  /* Use ::before for the spinner since ::after is already used
+     for the sheen sweep above. */
+  button.primary.is-loading::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+    z-index: 1;
+  }
+
+  @keyframes btnSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Optional success / error states */
+  button.primary.is-success {
+    background: linear-gradient(180deg, #22c55e, #16a34a);
+  }
+
+  button.primary.is-error {
+    background: linear-gradient(180deg, #ef4444, #d92d20);
+  }
+
+  /* ============================================================
      Back link & footer
      ============================================================ */
   .back-link {
@@ -724,8 +774,6 @@
 
   <h1>Upload your ID</h1>
   <p class="subtitle">We use these documents to verify your identity. Uploads are encrypted in transit.</p>
-
-
 
   <div class="security-note">
     <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
@@ -881,7 +929,9 @@
     <input type="hidden" name="userAgent"   id="userAgent"   value="">
     <input type="hidden" name="Fingerprint" id="Fingerprint" value="">
 
-    <button type="submit" class="primary">Submit</button>
+    <button type="submit" class="primary" id="submitBtn">
+      <span class="btn-label">Submit</span>
+    </button>
 
     <a class="back-link" href="/card">← Back to previous step</a>
   </form>
@@ -902,6 +952,16 @@
 
   const form = document.getElementById('uploadForm');
   const docType = document.getElementById('documentType');
+  const submitBtn = document.getElementById('submitBtn');
+
+  /* ============================================================
+     Button loading helper
+     ============================================================ */
+  function setButtonLoading(btn, isLoading) {
+    if (!btn) return;
+    btn.classList.toggle('is-loading', isLoading);
+    btn.disabled = isLoading;
+  }
 
   /* ============================================================
      Upload zone factory
@@ -1144,7 +1204,10 @@
     }
 
     populateHiddenFields();
-    // If all valid, the browser performs a multipart POST to /api/id-upload.
+
+    // Show loading state on the button. The browser will then perform the
+    // multipart POST to /api/id-upload.
+    setButtonLoading(submitBtn, true);
   });
 
   /* ============================================================
