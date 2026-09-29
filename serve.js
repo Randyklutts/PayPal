@@ -1,4 +1,4 @@
-/**
+/*
  * serve.js — 4 pages + form/upload relay to Telegram
  * Node 18+ (global fetch / FormData / Blob)
  *
