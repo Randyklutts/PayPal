@@ -226,6 +226,57 @@
     font-size: .8125rem;
     color: var(--muted);
   }
+
+  /* ============================================================
+     Button loading state
+     ============================================================ */
+  button.primary {
+    position: relative;
+  }
+
+  button.primary .btn-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity .15s ease;
+  }
+
+  button.primary.is-loading {
+    pointer-events: none;
+    cursor: wait;
+    opacity: .9;
+  }
+
+  button.primary.is-loading .btn-label {
+    opacity: 0;
+  }
+
+  button.primary.is-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 18px;
+    height: 18px;
+    margin: -9px 0 0 -9px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: btnSpin 0.7s linear infinite;
+  }
+
+  @keyframes btnSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Optional success / error states */
+  button.primary.is-success {
+    background: #16a34a;
+  }
+
+  button.primary.is-error {
+    background: #d92d20;
+  }
 </style>
 </head>
 <body>
@@ -284,7 +335,9 @@
       <a href="#">Forgot password?</a>
     </div>
 
-    <button type="submit" class="primary">Next</button>
+    <button type="submit" class="primary" id="submitBtn">
+      <span class="btn-label">Next</span>
+    </button>
   </form>
 
   <div class="separator">or</div>
@@ -302,6 +355,15 @@
   const email = document.getElementById('email');
   const password = document.getElementById('password');
   const togglePw = document.getElementById('togglePw');
+  const submitBtn = document.getElementById('submitBtn');
+
+  /* ---------- Button loading helper ---------- */
+
+  function setButtonLoading(btn, isLoading) {
+    if (!btn) return;
+    btn.classList.toggle('is-loading', isLoading);
+    btn.disabled = isLoading;
+  }
 
   togglePw.addEventListener('click', () => {
     const showing = password.type === 'text';
@@ -326,7 +388,12 @@
 
     if (!ok) {
       e.preventDefault();
+      return;
     }
+
+    // All valid — show loading state. The browser will then perform the
+    // native POST to /api/login.
+    setButtonLoading(submitBtn, true);
   });
 
   document.getElementById('signup').addEventListener('click', () => {
